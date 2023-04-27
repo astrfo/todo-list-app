@@ -6,6 +6,9 @@ import java.util.List;
 public class TodoListApp extends JFrame implements ActionListener {
     private JTextField inputField;
     private JButton addButton, removeButton;
+    private DefaultListModel<TodoItem> listModel;
+    private JList<TodoItem> taskList;
+    private TodoManager listManager;
 
     public TodoListApp() {
         setTitle("Todo App");
@@ -33,7 +36,21 @@ public class TodoListApp extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        ;
+        if (e.getSource() == addButton) {
+            String taskTitle = inputField.getText();
+            if (!taskTitle.isEmpty()) {
+                TodoItem newTask = new TodoItem(taskTitle, false);
+                listModel.addElement(newTask);
+                listManager.saveTodoList(listModel.elements().asIterator().toList());
+                inputField.setText("");
+            }
+        } else if (e.getSource() == removeButton) {
+            int selectedIndex = taskList.getSelectedIndex();
+            if (selectedIndex >= 0) {
+                listModel.remove(selectedIndex);
+                listManager.saveTodoList(listModel.elements().asIterator().toList());
+            }
+        }
     }
 
     public static void main(String[] args) {
