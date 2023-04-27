@@ -2,6 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class TodoListApp extends JFrame implements ActionListener {
     private JTextField inputField;
@@ -15,7 +17,14 @@ public class TodoListApp extends JFrame implements ActionListener {
         setSize(400, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        listManager = new TodoManager();
+
+        listModel = new DefaultListModel<>();
+        taskList = new JList<>(listModel);
+        loadTasksFromFile();
+
         inputField = new JTextField();
+        inputField.setPreferredSize(new Dimension(200, 30));
 
         addButton = new JButton("追加");
         addButton.addActionListener(this);
@@ -29,9 +38,17 @@ public class TodoListApp extends JFrame implements ActionListener {
         inputPanel.add(removeButton);
 
         setLayout(new BorderLayout());
+        add(new JScrollPane(taskList), BorderLayout.CENTER);
         add(inputPanel, BorderLayout.SOUTH);
 
         setVisible(true);
+    }
+
+    private void loadTasksFromFile() {
+        List<TodoItem> tasks = listManager.loadTodoList();
+        if (tasks != null) {
+            tasks.forEach(listModel::addElement);
+        }
     }
 
     @Override
@@ -41,19 +58,29 @@ public class TodoListApp extends JFrame implements ActionListener {
             if (!taskTitle.isEmpty()) {
                 TodoItem newTask = new TodoItem(taskTitle, false);
                 listModel.addElement(newTask);
-                listManager.saveTodoList(listModel.elements().asIterator().toList());
+                Iterator<TodoItem> iterator = listModel.elements().asIterator();
+                List<TodoItem> todoItems = new ArrayList<>();
+                while (iterator.hasNext()) {
+                    todoItems.add(iterator.next());
+                }
+                listManager.saveTodoList(todoItems);
                 inputField.setText("");
             }
         } else if (e.getSource() == removeButton) {
             int selectedIndex = taskList.getSelectedIndex();
             if (selectedIndex >= 0) {
                 listModel.remove(selectedIndex);
-                listManager.saveTodoList(listModel.elements().asIterator().toList());
+                Iterator<TodoItem> iterator = listModel.elements().asIterator();
+                List<TodoItem> todoItems = new ArrayList<>();
+                while (iterator.hasNext()) {
+                    todoItems.add(iterator.next());
+                }
+                listManager.saveTodoList(todoItems);
             }
         }
     }
 
     public static void main(String[] args) {
-        new TodoListApp();
+        SwingUtilities.invokeLater(TodoListApp::new);
     }
 }
